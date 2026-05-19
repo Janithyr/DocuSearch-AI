@@ -1,10 +1,12 @@
 # src/llm_handler.py
 
-import ollama
+import os
+
+from groq import Groq
 
 
 def get_answer(query, relevant_chunks):
-    """Send question + relevant chunks to Phi and get answer"""
+    """Send question + relevant chunks to Groq and get answer"""
 
     # combine all relevant chunks into one context
     context = "\n\n".join(relevant_chunks)
@@ -23,27 +25,25 @@ If the answer is not in the context, say 'I could not find
 this information in the document.'
 """
 
-    print("Sending to Phi model...")
+    api_key = os.getenv("GROQ_API_KEY")
+    model = os.getenv("GROQ_MODEL", "llama3-8b-8192")
+
+    if not api_key:
+        raise Exception(
+            "❌ GROQ_API_KEY is missing.\n\n"
+            "Add it to your environment (local) or Streamlit Secrets (cloud)."
+        )
+
+    print("Sending to Groq model...")
 
     try:
-        response = ollama.chat(
-            model="phi",
-            messages=[
-                {"role": "user", "content": prompt}
-            ]
+        client = Groq(api_key=api_key)
+        response = client.chat.completions.create(
+            model=model,
+            messages=[{"role": "user", "content": prompt}],
+            temperature=0.2,
         )
-        answer = response["message"]["content"]
+        answer = response.choices[0].message.content
         return answer
     except Exception as e:
-        error_msg = str(e).lower()
-        if "connection" in error_msg or "refused" in error_msg or "10061" in error_msg:
-            raise Exception(
-                "❌ Ollama is not running!\n\n"
-                "To fix this:\n"
-                "1. Download Ollama from https://ollama.ai\n"
-                "2. Start the Ollama application\n"
-                "3. Run: ollama pull phi\n"
-                "4. Try your question again"
-            ) from e
-        else:
-            raise Exception(f"Error communicating with Ollama: {str(e)}") from e
+        raise Exception(f"Error communicating with Groq: {str(e)}") from e

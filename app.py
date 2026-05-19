@@ -127,9 +127,9 @@ st.markdown("""
     background: #0d0d1a;
     border: 1px solid #1a1a2e;
     border-radius: 18px;
-    padding: 24px 28px;
-    margin-bottom: 20px;
-    min-height: 320px;
+    padding: 20px 22px;
+    margin-bottom: 16px;
+    min-height: 220px;
 }
 .chat-empty {
     display: flex; flex-direction: column;
@@ -231,13 +231,23 @@ st.markdown("""
 [data-testid="stChatInput"] {
     background: #0d0d1a !important;
     border: 1px solid #1a1a2e !important;
-    border-radius: 14px !important;
-    margin-top: 8px !important;
+    border-radius: 12px !important;
+    margin-top: 10px !important;
+    box-shadow: 0 0 0 1px rgba(112, 72, 232, 0.2) !important;
 }
 [data-testid="stChatInput"] textarea {
     background: transparent !important;
     color: #e2e2f0 !important;
-    font-size: 0.875rem !important;
+    font-size: 0.9rem !important;
+    min-height: 44px !important;
+}
+
+/* ── Mobile polish ── */
+@media (max-width: 640px) {
+    .hero { padding: 32px 0 28px; }
+    .hero-title { font-size: 2.1rem; }
+    .upload-card, .chat-card, .status-card { padding: 18px; }
+    .status-row { flex-direction: column; }
 }
 
 /* ── Spinner ── */
@@ -269,7 +279,7 @@ st.markdown("""
         <div class="navbar-icon">🔍</div>
         <div class="navbar-name">DocuSearch AI</div>
     </div>
-    <div class="navbar-tag">OFFLINE · PRIVATE</div>
+    <div class="navbar-tag">HOSTED · API</div>
 </div>
 """, unsafe_allow_html=True)
 
@@ -279,7 +289,7 @@ if not st.session_state.pdf_processed:
     <div class="hero">
         <div class="hero-badge">AI Document Intelligence</div>
         <div class="hero-title">Ask anything from<br><span>your documents</span></div>
-        <div class="hero-sub">Upload a PDF and get instant answers — powered by local AI, no internet required</div>
+        <div class="hero-sub">Upload a PDF and get instant answers — powered by hosted AI</div>
     </div>
     """, unsafe_allow_html=True)
 
@@ -308,6 +318,7 @@ if uploaded_file:
 
     if st.button("⚡  Process Document"):
         temp_path = os.path.join(BASE_DIR, "data", "uploaded_docs", "temp.pdf")
+        os.makedirs(os.path.dirname(temp_path), exist_ok=True)
 
         with open(temp_path, "wb") as f:
             f.write(uploaded_file.getbuffer())
@@ -356,12 +367,17 @@ if st.session_state.pdf_processed:
 
 # ── Chat input ───────────────────────────────────────────────
 if st.session_state.pdf_processed:
+    st.markdown('<div class="card-label" style="margin-top:6px">✍️ Type your question</div>', unsafe_allow_html=True)
     query = st.chat_input("Ask anything about your document...")
     if query:
         with st.spinner("Thinking..."):
             qe = get_query_embedding(query)
             rc = search_similar_chunks(qe, st.session_state.index, st.session_state.chunks)
-            answer = get_answer(query, rc)
+            try:
+                answer = get_answer(query, rc)
+            except Exception as exc:
+                st.error(str(exc))
+                st.stop()
         st.session_state.chat_history.append({"question": query, "answer": answer})
         st.rerun()
 
@@ -388,7 +404,7 @@ if st.session_state.pdf_processed:
             <div class="stat-label">Vector Dims</div>
         </div>
         <div class="stat-box">
-            <div class="stat-num">Phi</div>
+            <div class="stat-num">Groq</div>
             <div class="stat-label">LLM Model</div>
         </div>
     </div>
@@ -403,7 +419,7 @@ else:
         <div class="stat-box"><div class="stat-num" style="color:#2a2a4a">—</div><div class="stat-label">Chunks</div></div>
         <div class="stat-box"><div class="stat-num" style="color:#2a2a4a">—</div><div class="stat-label">Questions Asked</div></div>
         <div class="stat-box"><div class="stat-num" style="color:#2a2a4a">—</div><div class="stat-label">Vector Dims</div></div>
-        <div class="stat-box"><div class="stat-num" style="color:#2a2a4a">Phi</div><div class="stat-label">LLM Model</div></div>
+        <div class="stat-box"><div class="stat-num" style="color:#2a2a4a">Groq</div><div class="stat-label">LLM Model</div></div>
     </div>
     """, unsafe_allow_html=True)
 

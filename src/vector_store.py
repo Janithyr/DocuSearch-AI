@@ -1,15 +1,20 @@
 # src/vector_store.py
 
+import os
 import faiss
 import pickle
 
-FAISS_INDEX_PATH = r"C:\Users\janit\OneDrive\Desktop\DocuSearch-AI\faiss_index\index.faiss"
-CHUNKS_PATH = r"C:\Users\janit\OneDrive\Desktop\DocuSearch-AI\faiss_index\index.pkl"
+BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+FAISS_DIR = os.path.join(BASE_DIR, "faiss_index")
+FAISS_INDEX_PATH = os.path.join(FAISS_DIR, "index.faiss")
+CHUNKS_PATH = os.path.join(FAISS_DIR, "index.pkl")
 
 
 def save_vector_store(embeddings, chunks):
     """Save embeddings into FAISS index"""
     print("Saving vector store...")
+
+    os.makedirs(FAISS_DIR, exist_ok=True)
 
     dimension = embeddings.shape[1]
     index = faiss.IndexFlatL2(dimension)
@@ -26,6 +31,11 @@ def save_vector_store(embeddings, chunks):
 def load_vector_store():
     """Load FAISS index from disk"""
     print("Loading vector store...")
+
+    if not os.path.exists(FAISS_INDEX_PATH) or not os.path.exists(CHUNKS_PATH):
+        raise FileNotFoundError(
+            "Vector store not found. Please process a document first."
+        )
 
     index = faiss.read_index(FAISS_INDEX_PATH)
 
