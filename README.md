@@ -40,6 +40,17 @@ Getting Started
 3) Run the app
 	streamlit run app.py
 
+Streamlit Cloud
+---------------
+1) Deploy this repo and set the main file to app.py.
+2) Add secrets in the app settings:
+
+	GROQ_API_KEY = "your_key_here"
+	GROQ_MODEL = "llama3-8b-8192"
+
+Notes:
+- runtime.txt pins Python 3.11 for wheel compatibility.
+
 Usage
 -----
 - Upload a PDF.
