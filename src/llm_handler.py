@@ -26,7 +26,7 @@ this information in the document.'
 """
 
     api_key = os.getenv("GROQ_API_KEY")
-    model = os.getenv("GROQ_MODEL", "llama3-8b-8192")
+    model = os.getenv("GROQ_MODEL", "llama-3.1-8b-instant")
 
     if not api_key:
         raise Exception(
